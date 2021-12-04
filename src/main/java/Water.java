@@ -26,7 +26,6 @@ Output: "HHOHHO"
 Explanation: "HOHHHO", "OHHHHO", "HHOHOH", "HOHHOH", "OHHHOH", "HHOOHH", "HOHOHH" and "OHHOHH" are also valid answers
 */
 
-import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
@@ -36,96 +35,73 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class Water {
     public static void main(String[] args) throws InterruptedException {
-//        Runnable runHydrogen = () -> {
-//            int count = 5;
-//            while (count != 0) {
-//                System.out.print("H");
-//                count--;
-//            }
-//            System.out.println();
-//        };
-//        Runnable runOxygen = () -> {
-//            int count = 5;
-//            while (count != 0) {
-//                System.out.print("O");
-//                count--;
-//            }
-//            System.out.println();
-//        };
-        Semaphore semaphoreHydrogen = new Semaphore(2);
-        Semaphore semaphoreOxygen = new Semaphore(1);
-        ReentrantLock reentrantLock = new ReentrantLock();
-        int count;
 
+        ReentrantLock lockHydrogen = new ReentrantLock();
+        ReentrantLock lockOxygen = new ReentrantLock();
+        Condition notFullHydrogen = lockHydrogen.newCondition();
+        Condition notFullOxygen = lockOxygen.newCondition();
 
         ExecutorService executorHydrogen = Executors.newSingleThreadExecutor();
         ExecutorService executorOxygen = Executors.newSingleThreadExecutor();
-        for (int i = 0; i < 5; i++) {
-            executorHydrogen.execute(new RunHydrogen(semaphoreHydrogen, semaphoreOxygen, reentrantLock));
-            executorOxygen.execute(new RunOxygen(semaphoreOxygen, semaphoreHydrogen, reentrantLock));
-        }
-//        sleep(2000);
+//        executorHydrogen.execute();
+//        executorOxygen.execute();
         executorHydrogen.shutdown();
         executorOxygen.shutdown();
 
     }
 }
 
-class RunHydrogen implements Runnable {
-    ReentrantLock locker;
-    Condition notFull = locker.newCondition();
-    Semaphore semaphoreHydrogen;
-    Semaphore semaphoreOxygen;
-    int count;
-    int maxCount = 2;
+class WaterMaker {
+    int countOfHydrogen;
+    final int maxCountOfHydrogen = 2;
+    int countOfOxygen;
+    final int maxCountOfOxygen = 1;
+    boolean done;
 
-    public RunHydrogen(Semaphore semaphoreHydrogen, Semaphore semaphoreOxygen, ReentrantLock locker) {
-        this.semaphoreHydrogen = semaphoreHydrogen;
-        this.semaphoreOxygen = semaphoreOxygen;
-        this.locker = locker;
-        this.count = 0;
-    }
-
-    @Override
-    public void run() {
-        try {
-            semaphoreHydrogen.acquire();
-            count++;
-            System.out.print("H");
-            while (count != maxCount) {
-                notFull.await();
+    public void buildWater() {
+        done = false;
+        if (countOfHydrogen != 2 && countOfOxygen != 1) {
+            while (countOfHydrogen == 2 && countOfOxygen == 1) {
+//                await();
             }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        }
+        releaseHydrogen();
+        releaseOxygen();
+    }
+
+    public void putHydrogen() {
+        while (!done) {
+            if (countOfHydrogen != maxCountOfHydrogen) {
+                countOfHydrogen++;
+            } else {
+//                await();
+            }
+//            signalAll();
         }
     }
-}
 
-class RunOxygen implements Runnable {
-    ReentrantLock locker;
-    Semaphore semaphoreHydrogen;
-    Semaphore semaphoreOxygen;
-    int count;
-
-    public RunOxygen(Semaphore semaphoreOxygen, Semaphore semaphoreHydrogen, ReentrantLock locker) {
-        this.semaphoreOxygen = semaphoreOxygen;
-        this.semaphoreHydrogen = semaphoreHydrogen;
-        this.locker = locker;
-        this.count = 1;
-    }
-
-    @Override
-    public void run() {
-        try {
-            semaphoreOxygen.acquire();
-            System.out.println("O");
-            semaphoreHydrogen.release(2);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+    public void putOxygen() {
+        while (!done) {
+            if (countOfOxygen != maxCountOfOxygen) {
+                countOfOxygen++;
+            } else {
+//                await();
+            }
+//            signalAll();
         }
     }
-}
 
+    public void releaseHydrogen() {
+        System.out.print("H");
+        countOfHydrogen--;
+    }
+
+    public void releaseOxygen() {
+        System.out.println("O");
+        countOfOxygen--;
+    }
+
+}
 
 /*class BoundedBuffer<E> {
     final Lock lock = new ReentrantLock();

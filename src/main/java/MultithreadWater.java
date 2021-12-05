@@ -33,8 +33,8 @@ class WaterBuilding {
     final int maxCountOfHydrogen = 2;
     int countOfOxygen = 0;
     final int maxCountOfOxygen = 1;
-    boolean buildWaterCompleted;
-    boolean isNewProcess;
+    boolean buildWaterCompleted = false;
+    boolean isNewProcess = false;
 
     private boolean isWater() {
         return countOfHydrogen == maxCountOfHydrogen && countOfOxygen == maxCountOfOxygen;
@@ -42,6 +42,34 @@ class WaterBuilding {
 
     private boolean isClear() {
         return countOfHydrogen == 0 && countOfOxygen == 0;
+    }
+
+    public synchronized void putHydrogen() throws InterruptedException {
+        if (countOfHydrogen == maxCountOfHydrogen) {
+            System.out.println(" Blocked in put: " + Thread.currentThread().getName());
+            while (!isNewProcess) {
+                wait();
+            }
+        }
+        if (countOfHydrogen == maxCountOfHydrogen) {
+            isNewProcess = false;
+        }
+        buildWaterCompleted = false;
+        countOfHydrogen++;
+    }
+
+    public synchronized void putOxygen() throws InterruptedException {
+        if (countOfOxygen == maxCountOfOxygen) {
+            System.out.println(" Blocked in put: " + Thread.currentThread().getName());
+            while (!isNewProcess) {
+                wait();
+            }
+        }
+        if (countOfOxygen == maxCountOfOxygen) {
+            isNewProcess = false;
+        }
+        buildWaterCompleted = false;
+        countOfOxygen++;
     }
 
     public synchronized void buildWater() throws InterruptedException {
@@ -54,30 +82,6 @@ class WaterBuilding {
                 wait();
             }
         }
-    }
-
-    public synchronized void putHydrogen() throws InterruptedException {
-        isNewProcess = false;
-        buildWaterCompleted = false;
-        if (countOfHydrogen == maxCountOfHydrogen) {
-            System.out.println(" Blocked in put: " + Thread.currentThread().getName());
-            while (!isNewProcess) {
-                wait();
-            }
-        }
-        countOfHydrogen++;
-    }
-
-    public synchronized void putOxygen() throws InterruptedException {
-        isNewProcess = false;
-        buildWaterCompleted = false;
-        if (countOfOxygen == maxCountOfOxygen) {
-            System.out.println(" Blocked in put: " + Thread.currentThread().getName());
-            while (!isNewProcess) {
-                wait();
-            }
-        }
-        countOfOxygen++;
     }
 
     public synchronized void releaseHydrogen() {

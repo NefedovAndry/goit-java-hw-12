@@ -29,9 +29,9 @@ public class MultithreadWater {
 
 class WaterBuilding {
 
-    int countOfHydrogen;
+    int countOfHydrogen = 0;
     final int maxCountOfHydrogen = 2;
-    int countOfOxygen;
+    int countOfOxygen = 0;
     final int maxCountOfOxygen = 1;
     boolean buildWaterCompleted;
     boolean isNewProcess;
@@ -49,6 +49,7 @@ class WaterBuilding {
             buildWaterCompleted = true;
             notifyAll();
         } else {
+            System.out.println(" Blocked in build: " + Thread.currentThread().getName());
             while (!buildWaterCompleted) {
                 wait();
             }
@@ -56,22 +57,26 @@ class WaterBuilding {
     }
 
     public synchronized void putHydrogen() throws InterruptedException {
+        isNewProcess = false;
+        buildWaterCompleted = false;
         if (countOfHydrogen == maxCountOfHydrogen) {
+            System.out.println(" Blocked in put: " + Thread.currentThread().getName());
             while (!isNewProcess) {
                 wait();
             }
         }
-        isNewProcess = false;
         countOfHydrogen++;
     }
 
     public synchronized void putOxygen() throws InterruptedException {
+        isNewProcess = false;
+        buildWaterCompleted = false;
         if (countOfOxygen == maxCountOfOxygen) {
+            System.out.println(" Blocked in put: " + Thread.currentThread().getName());
             while (!isNewProcess) {
                 wait();
             }
         }
-        isNewProcess = false;
         countOfOxygen++;
     }
 
@@ -80,10 +85,9 @@ class WaterBuilding {
         countOfHydrogen--;
         if (isClear()) {
             System.out.println(",");
-            buildWaterCompleted = false;
             isNewProcess = true;
-            notifyAll();
         }
+        notifyAll();
     }
 
     public synchronized void releaseOxygen() {
@@ -91,10 +95,9 @@ class WaterBuilding {
         countOfOxygen--;
         if (isClear()) {
             System.out.println(",");
-            buildWaterCompleted = false;
             isNewProcess = true;
-            notifyAll();
         }
+        notifyAll();
     }
 
 }

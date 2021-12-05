@@ -1,5 +1,28 @@
 public class MultithreadWater {
     public static void main(String[] args) {
+        WaterBuilding waterBuilding = new WaterBuilding();
+        for (int i = 0; i < 10; i++) {
+            new Thread(() -> {
+                try {
+                    waterBuilding.putHydrogen();
+                    waterBuilding.buildWater();
+                    waterBuilding.releaseHydrogen();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }, "Hydrogen").start();
+        }
+        for (int i = 0; i < 5; i++) {
+            new Thread(() -> {
+                try {
+                    waterBuilding.putOxygen();
+                    waterBuilding.buildWater();
+                    waterBuilding.releaseOxygen();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }, "Oxygen").start();
+        }
 
     }
 }
@@ -10,40 +33,68 @@ class WaterBuilding {
     final int maxCountOfHydrogen = 2;
     int countOfOxygen;
     final int maxCountOfOxygen = 1;
-    boolean done;
+    boolean buildWaterCompleted;
+    boolean isNewProcess;
+
+    private boolean isWater() {
+        return countOfHydrogen == maxCountOfHydrogen && countOfOxygen == maxCountOfOxygen;
+    }
+
+    private boolean isClear() {
+        return countOfHydrogen == 0 && countOfOxygen == 0;
+    }
 
     public synchronized void buildWater() throws InterruptedException {
-        if (countOfHydrogen != 2 && countOfOxygen != 1) {
-            wait();
+        if (isWater()) {
+            buildWaterCompleted = true;
+            notifyAll();
+        } else {
+            while (!buildWaterCompleted) {
+                wait();
+            }
         }
     }
 
     public synchronized void putHydrogen() throws InterruptedException {
-        if (countOfHydrogen != maxCountOfHydrogen) {
-            countOfHydrogen++;
-        } else {
-            wait();
+        if (countOfHydrogen == maxCountOfHydrogen) {
+            while (!isNewProcess) {
+                wait();
+            }
         }
-        notifyAll();
+        isNewProcess = false;
+        countOfHydrogen++;
     }
 
     public synchronized void putOxygen() throws InterruptedException {
-        if (countOfOxygen != maxCountOfOxygen) {
-            countOfOxygen++;
-        } else {
-            wait();
+        if (countOfOxygen == maxCountOfOxygen) {
+            while (!isNewProcess) {
+                wait();
+            }
         }
-        notifyAll();
+        isNewProcess = false;
+        countOfOxygen++;
     }
 
-    public void releaseHydrogen() {
+    public synchronized void releaseHydrogen() {
         System.out.print("H");
         countOfHydrogen--;
+        if (isClear()) {
+            System.out.println(",");
+            buildWaterCompleted = false;
+            isNewProcess = true;
+            notifyAll();
+        }
     }
 
-    public void releaseOxygen() {
-        System.out.println("O");
+    public synchronized void releaseOxygen() {
+        System.out.print("O");
         countOfOxygen--;
+        if (isClear()) {
+            System.out.println(",");
+            buildWaterCompleted = false;
+            isNewProcess = true;
+            notifyAll();
+        }
     }
 
 }

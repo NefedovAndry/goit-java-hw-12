@@ -35,17 +35,15 @@ public class Water {
         CyclicBarrier cb = new CyclicBarrier(3, new Messenger());
 
         ExecutorService executorHydrogen = Executors.newFixedThreadPool(5);
-        ExecutorService executorOxygen = Executors.newFixedThreadPool(3);
+        ExecutorService executorOxygen = Executors.newFixedThreadPool(2);
         for (int i = 0; i < 6; i++) {
             executorHydrogen.execute(new MyThread(semHydrogen, cb, "H"));
         }
         for (int i = 0; i < 3; i++) {
             executorOxygen.execute(new MyThread(semOxygen, cb, "O"));
         }
-
         executorHydrogen.shutdown();
         executorOxygen.shutdown();
-
     }
 }
 
@@ -63,20 +61,22 @@ class MyThread implements Runnable {
 
     @Override
     public void run() {
-        System.out.print(name);
         try {
             sem.acquire();
-            cb.await();
+            cb.await(1, TimeUnit.SECONDS);
+            System.out.print(name);
             sem.release();
-        } catch (InterruptedException | BrokenBarrierException e) {
+        } catch (InterruptedException | BrokenBarrierException | TimeoutException e) {
             e.printStackTrace();
         }
     }
-}
- class Messenger implements Runnable {
 
-     @Override
-     public void run() {
-         System.out.println(" Water built.");
-     }
- }
+
+}
+
+class Messenger implements Runnable {
+    @Override
+    public void run() {
+        System.out.print(" ");
+    }
+}

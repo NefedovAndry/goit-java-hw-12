@@ -14,13 +14,14 @@
 если поток гидрогена "подходит к барьеру" и нет других потоков, он ждет поток оксигена и еще один поток гидрогена.
 
 Пример 1:
-Input: "HOH"
-Output: "HHO"
-Explanation: "HOH" and "OHH" are also valid answers.
+    Input: "HOH"
+    Output: "HHO"
+    Explanation: "HOH" and "OHH" are also valid answers.
+
 Пример 2:
-Input: "OOHHHH"
-Output: "HHOHHO"
-Explanation: "HOHHHO", "OHHHHO", "HHOHOH", "HOHHOH", "OHHHOH", "HHOOHH", "HOHOHH" and "OHHOHH" are also valid answers
+    Input: "OOHHHH"
+    Output: "HHOHHO"
+    Explanation: "HOHHHO", "OHHHHO", "HHOHOH", "HOHHOH", "OHHHOH", "HHOOHH", "HOHOHH" and "OHHOHH" are also valid answers
 
 
 Задание 2 (дополнительно)
@@ -29,13 +30,13 @@ Explanation: "HOHHHO", "OHHHHO", "HHOHOH", "HOHHOH", "OHHHOH", "HHOOHH", "HOHOHH
 Расширьте класс ​ ThreadPoolExecutor​​ и переопределите метод ​execute следующим образом: если экземпляр Runnable имеет аннотацию Repeat, то его метод run выполняется несколько раз (количество задается параметром в Repeat).
 То есть, написав такой класс:
 
-@Repeat(3)
-class MyRunnable implements Runnable{
-    @Override
-    public void run() {
-        System.out.println("Hello!");
+    @Repeat(3)
+    class MyRunnable implements Runnable{
+        @Override
+        public void run() {
+            System.out.println("Hello!");
+        }
     }
-}
 
 и использовав его:
 
@@ -46,6 +47,7 @@ class MyRunnable implements Runnable{
     }
 
 Мы должны увидеть:
-Hello!
-Hello!
-Hello!
+
+    Hello!
+    Hello!
+    Hello!
